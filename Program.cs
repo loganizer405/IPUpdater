@@ -120,11 +120,7 @@ namespace IPUpdater
             }
         }
         static void LogError(string e)
-        {
-            if (!File.Exists("IP.log"))
-            {
-                File.Create("IP.log");
-            }
+        {         
             using (StreamWriter writer = new StreamWriter("IP.log", true))
             {
                 writer.WriteLine(DateTime.Now.ToString("s") + " ERROR: " + e);
