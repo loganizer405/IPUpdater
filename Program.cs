@@ -11,6 +11,7 @@ namespace IPUpdater
 {
     class Program
     {
+        public static string logName = "IP.log";
         static void Main(string[] args)
         {
             if (args == null)
@@ -21,6 +22,7 @@ namespace IPUpdater
             string user = null;
             string pass = null;
             string url = null;
+            string fileName = "IP.txt";
             for (int i = 0; i < args.Length; i++)
             {
                 switch (args[i])
@@ -55,6 +57,26 @@ namespace IPUpdater
                         }
                         url = args[i];
                         break;
+                    case "-filename":
+                    case "-file":
+                        i++;
+                        if (args.Length <= i)
+                        {
+                            LogError("incorrect argument syntax!");
+                            return;
+                        }
+                        fileName = args[i];
+                        break;
+                    case "-logname":
+                    case "-log":
+                        i++;
+                        if (args.Length <= i)
+                        {
+                            LogError("incorrect argument syntax!");
+                            return;
+                        }
+                        logName = args[i];
+                        break;
                 }
             }
             string newIp;
@@ -68,9 +90,9 @@ namespace IPUpdater
                 LogError("failed to retrieve IP");
                 return;
             }
-            if (!File.Exists("IP.txt"))
+            if (!File.Exists(fileName))
             {
-                using (StreamWriter writer = new StreamWriter("IP.txt"))
+                using (StreamWriter writer = new StreamWriter(fileName))
                 {
                     writer.WriteLine(newIp);
                     writer.WriteLine("Retrieved " + DateTime.Now.ToString("s"));
@@ -79,13 +101,13 @@ namespace IPUpdater
             else
             {
                 string oldIp;
-                using (StreamReader reader = new StreamReader("IP.txt"))
+                using (StreamReader reader = new StreamReader(fileName))
                 {
                     oldIp = reader.ReadLine();
                 }
                 if (String.IsNullOrWhiteSpace(oldIp))
                 {
-                    using (StreamWriter writer = new StreamWriter("IP.txt"))
+                    using (StreamWriter writer = new StreamWriter(fileName))
                     {
                         writer.WriteLine(newIp);
                         writer.WriteLine("Retrieved " + DateTime.Now.ToString("s"));
@@ -93,7 +115,7 @@ namespace IPUpdater
                     return;
                 }
                 if (String.Equals(newIp, oldIp)) { return; }
-                using (StreamWriter writer = new StreamWriter("IP.txt"))
+                using (StreamWriter writer = new StreamWriter(fileName))
                 {
                     writer.WriteLine(newIp);
                     writer.WriteLine("Retrieved " + DateTime.Now.ToString("s"));
@@ -104,7 +126,7 @@ namespace IPUpdater
                 FtpWebRequest request = (FtpWebRequest)WebRequest.Create(url);
                 request.Credentials = new NetworkCredential(user.Normalize(), pass.Normalize());
                 request.Method = WebRequestMethods.Ftp.UploadFile;
-                StreamReader sourceStream = new StreamReader("IP.txt");
+                StreamReader sourceStream = new StreamReader(fileName);
                 byte[] fileContents = Encoding.UTF8.GetBytes(sourceStream.ReadToEnd());
                 sourceStream.Close();
                 request.ContentLength = fileContents.Length;
@@ -121,7 +143,7 @@ namespace IPUpdater
         }
         static void LogError(string e)
         {         
-            using (StreamWriter writer = new StreamWriter("IP.log", true))
+            using (StreamWriter writer = new StreamWriter(logName, true))
             {
                 writer.WriteLine(DateTime.Now.ToString("s") + " ERROR: " + e);
             }
